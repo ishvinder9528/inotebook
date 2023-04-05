@@ -18,10 +18,13 @@ router.post(
   ],
   async (req, res) => {
     const { name, email, password } = req.body;
+    // give error when there is some syntax error by User
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
+    // send data to api
     try {
       const userAdded = await User.create({
         name: name,
@@ -31,8 +34,14 @@ router.post(
       console.log(req.body);
       res.status(200).json(userAdded);
     } catch (error) {
-      console.log("Error Found => ", error);
-      res.status(400).json({ Error: error.message });
+      // check if there is some internal error/
+      let user = await User.findOne({ email: email });
+      if (user) {
+        res.status(400).json({ Error: "email already exists" });
+      } else {
+        console.log("Error Found => ", error);
+        res.status(500).json({ error: error.message });
+      }
     }
   }
 );
@@ -44,6 +53,7 @@ router.get("/", async (req, res) => {
     res.status(200).json(showAll);
   } catch (error) {
     console.log("Error Found => ", error);
+
     res.status(400).json({ error: error.message });
   }
 });
