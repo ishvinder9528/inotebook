@@ -6,16 +6,16 @@ const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const jwtSecretKey = process.env.JWT_SECRET_KEY;
-
-// post the data to the /api/auth
+const fetchuser = require("../middleware/fetchuser");
+//ROUTE 1: post the data to the /api/auth/createuser, no login required
 router.post(
-  "/",
+  "/createuser",
   [
     body("name", "invalid name, enter more than 5 character").isLength({
       min: 5,
     }),
     body("email", "invalid email").isEmail(),
-    body("password", "invalid name, enter more than 5 character").isLength({
+    body("password", "invalid name, enter password than 5 character").isLength({
       min: 5,
     }),
   ],
@@ -36,54 +36,102 @@ router.post(
 
     // send data to api
     try {
-      const userAdded = await User.create({
+      const user = await User.create({
         name: name,
         email: email,
         password: secPassword,
       });
 
-      const{id} = userAdded;
       const data = {
-        userAdded: {
-          id: id,
+        user: {
+          id: user.id,
         },
       };
 
       // using jwtAuth here
       try {
-        const authToken =  jwt.sign(data, jwtSecretKey);
+        const authToken = jwt.sign(data, jwtSecretKey);
         console.log(authToken);
 
-        res.status(200).json(userAdded);
-        console.log(userAdded);
-
+        res.status(200).json(user);
+        console.log(user);
       } catch (error) {
         console.log("Error =>", err);
-        res.status(500).json({ error: error.message });
+        res.status(500).send("Internal Server Error");
       }
     } catch (error) {
       // check if there is some internal error/
       let user = await User.findOne({ email: email });
       if (user) {
-        res.status(400).json({ Error: "email already exists" });
         console.error("Error => email already exists");
+        return res.status(400).json({ error: "email already exists" });
       } else {
-        console.log("Err or Found => ", error);
-        res.status(500).json({ error: error.message });
+        console.log("Error Found => ", error);
+        return res.status(500).json({ error: error.message });
       }
     }
   }
 );
 
-//  Get data
-router.get("/", async (req, res) => {
+//ROUTE 2:  authenticate a user using PORT: http://localhost:5000/api/auth/login, no login required
+router.post(
+  "/login",
+  [
+    body("email", "invalid email").isEmail(),
+    body("password", "enter something in password").exists(),
+  ],
+
+  async (req, res) => {
+    // give error when there is some syntax error by User
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // send data to api
+    const { email, password } = req.body;
+    try {
+      let user = await User.findOne({ email: email });
+
+      if (!user) {
+        return res
+          .status(400)
+          .json({ error: "Please enter valid credentials" });
+      }
+
+      const passwordCompare = await bcrypt.compare(password, user.password);
+
+      if (!passwordCompare) {
+        return res
+          .status(400)
+          .json({ error: "Please enter valid credentials" });
+      }
+
+      const data = {
+        user: {
+          id: user.id,
+        },
+      };
+      const authToken = jwt.sign(data, jwtSecretKey);
+      console.warn(user);
+      res.status(200).json({ authToken });
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
+//ROUTE 3:  Get data from logged in user POST request http://localhost:5000, login required
+router.post("/getuser", fetchuser, async (req, res) => {
   try {
-    const showAll = await User.find();
-    res.status(200).json(showAll);
+    userId = req.user.id;
+    const user = await User.findById(userId).select("-password");
+    res.status(200).send(user);
+    console.log(user);
   } catch (error) {
-    console.log("Error Found => ", error);
-    res.status(400).json({ error: error.message });
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
   }
 });
-
 module.exports = router;
