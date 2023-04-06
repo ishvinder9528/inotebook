@@ -9,6 +9,7 @@ const auth = require("./routes/auth");
 const notes = require("./routes/notes");
 
 app.use("/api/auth", auth);
+app.use("/api/notes", notes);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log("listening on port http://localhost:" + process.env.PORT);

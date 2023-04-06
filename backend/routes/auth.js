@@ -1,44 +1,36 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
-const Notes = require("../models/Notes");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const jwtSecretKey = process.env.JWT_SECRET_KEY;
 const fetchuser = require("../middleware/fetchuser");
+
 //ROUTE 1: post the data to the /api/auth/createuser, no login required
-router.post(
-  "/createuser",
-  [
-    body("name", "invalid name, enter more than 5 character").isLength({
-      min: 5,
-    }),
-    body("email", "invalid email").isEmail(),
-    body("password", "invalid name, enter password than 5 character").isLength({
-      min: 5,
-    }),
-  ],
-
+router.post("/createuser", [
+  body("name", "invalid name, enter more than 5 character").isLength({ min: 5, }),
+  body("email", "invalid email").isEmail(),
+  body("password", "invalid name, enter password than 5 character").isLength({ min: 5, }),
+],
   async (req, res) => {
-    const { name, email, password } = req.body;
 
-    // give error when there is some syntax error by User
+    // give error when there is some BAD request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // hasing /brcyptjs
-
+    const { name, email, password } = req.body;
+    // hasing /brcyptj
     const salt = await bcrypt.genSaltSync(10);
     const secPassword = await bcrypt.hash(password, salt);
 
     // send data to api
     try {
       const user = await User.create({
-        name: name,
-        email: email,
+        name,
+        email,
         password: secPassword,
       });
 
@@ -73,7 +65,7 @@ router.post(
   }
 );
 
-//ROUTE 2:  authenticate a user using PORT: http://localhost:5000/api/auth/login, no login required
+//ROUTE 2:  authenticate a user using POST: http://localhost:5000/api/auth/login, no login required
 router.post(
   "/login",
   [
@@ -122,8 +114,8 @@ router.post(
   }
 );
 
-//ROUTE 3:  Get data from logged in user POST request http://localhost:5000, login required
-router.post("/getuser", fetchuser, async (req, res) => {
+//ROUTE 3:  Get data from logged in user GET request http://localhost:5000, login required
+router.get("/getuser", fetchuser, async (req, res) => {
   try {
     userId = req.user.id;
     const user = await User.findById(userId).select("-password");
@@ -134,4 +126,5 @@ router.post("/getuser", fetchuser, async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
 module.exports = router;
