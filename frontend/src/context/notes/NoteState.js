@@ -77,8 +77,8 @@ const NoteState = (props) => {
   };
 
   // Edit note
-  const editNote = async (note) => {
-    const { _id, title, description, tag } = note
+  const editNote = async ( _id, title, description, tag ) => {
+    
     try {
       const response = await fetch(`${host}/api/notes/updatenote/${_id}`, {
         method: "PATCH",
@@ -87,20 +87,23 @@ const NoteState = (props) => {
           "auth-token":
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjQyZWJkNWM2ZDI1YjcxYzI5NTc1YjZlIn0sImlhdCI6MTY4MDgwNTExMH0.nZNxVkocII3Z0AEqEVKx_LZLrKhy_r7b7svbLFHB1qA",
         },
+        body: JSON.stringify({ title, description, tag})
       })
-      const data = await response.json()
-
-      for (let index = 0; index < notes.length; index++) {
-        const element = notes[index];
+      const json = await response.json()
+      console.log(json);
+      const newNotes = JSON.parse(JSON.stringify(notes))
+      for (let index = 0; index < newNotes.length; index++) {
+        const element = newNotes[index];
         // eslint-disable-next-line no-cond-assign
-        if (element._id = _id) {
-          element.title = title
-          element.description = description
-          element.tag = tag
+        if (element._id === _id) {
+          newNotes[index].title = title
+          newNotes[index].description = description
+          newNotes[index].tag = tag
+          break
         }
 
       }
-
+        setNotes(newNotes)
 
     } catch (error) {
       console.error("Error: " + error);
