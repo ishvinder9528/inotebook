@@ -21,7 +21,6 @@ const Notes = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   const updateNote = (currentNote) => {
     ref.current.click();
     setNote({
@@ -44,13 +43,15 @@ const Notes = () => {
   };
 
   const handleSubmit = (e) => {
-    editNote( note._id, note.etitle, note.edescription, note.etag );
-    setNote({
-      etitle: "",
-      edescription: "",
-      etag: "General",
-    });
-    refClose.current.click();
+    if (note.edescription.length > 5 && note.etitle.length > 3) {
+      editNote(note._id, note.etitle, note.edescription, note.etag);
+      setNote({
+        etitle: "",
+        edescription: "",
+        etag: "General",
+      });
+      refClose.current.click();
+    }
   };
 
   return (
@@ -105,6 +106,8 @@ const Notes = () => {
                       id="etitle"
                       value={note.etitle}
                       onChange={onChange}
+                      minLength={3}
+                      required
                     />
                   </div>
                   <div className=" my-4 mb-3 container">
@@ -122,6 +125,8 @@ const Notes = () => {
                       rows="3"
                       onChange={onChange}
                       onKeyDown={handleKeyDown}
+                      minLength={5}
+                      required
                     />
 
                     <h5>
@@ -152,6 +157,9 @@ const Notes = () => {
                   type="button"
                   onClick={handleSubmit}
                   className="btn btn-primary"
+                  disabled={
+                    note.edescription.length < 5  || note.etitle.length < 3
+                  }
                 >
                   Modify Note
                 </button>
@@ -162,9 +170,10 @@ const Notes = () => {
       </div>
 
       {/* Note Items */}
-      <div className="my-5">
+      <div className="my-5 ">
         <h2>Your Notes </h2>
-        <div className="row my-3 ">
+        <div className="row my-3 container mx-2 ">
+          {notes.length < 1 && "No Notes to Display"}
           {notes.map((note) => {
             return (
               <NoteItem key={note._id} updateNote={updateNote} note={note} />
