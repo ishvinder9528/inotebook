@@ -12,14 +12,20 @@ const AddNote = () => {
     const onChange = (e) => {
         setNote({ ...note, [e.target.name]: e.target.value })
     }
+    const handleKeyDown = (e) => {
+        if (e.keyCode === 13 && e.shiftKey) {
+            e.preventDefault()
+            handleSubmit(e)
+        }
+    }
     const handleSubmit = (e) => {
+        e.preventDefault()
+        addNote(note)
         setNote({
             title: "",
             description: "",
             tag: "General"
         })
-        e.preventDefault()
-        addNote(note)
     }
     return (
         <div className='container my-3'>
@@ -30,13 +36,35 @@ const AddNote = () => {
                     <input type="text" className="form-control" name='title' id="title" value={note.title} onChange={onChange} />
 
                 </div>
-                <div className="mb-3 container">
+                <div className=" my-4 mb-3 container">
                     <h5><label htmlFor="description" className="form-label ">Description</label></h5>
-                    <textarea type="text" className="form-control" value={note.description} name='description' id="description" rows="3" onChange={onChange} />
+                    <textarea
+                        type="text"
+                        className="form-control"
+                        value={note.description}
+                        name='description'
+                        id="description"
+                        rows="3"
+                        onChange={onChange}
+                        onKeyDown={handleKeyDown}
+                    />
 
-                    <button type="submit" className="btn btn-primary  my-2">Add Task</button>
-                    {/* This button will be triggered when user hits enter key */}
-                    <button type="submit" style={{ display: 'none' }}></button>
+                    <h5><label htmlFor="tag" className="form-label my-4 mb-3">Tag</label></h5>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={note.tag}
+                        name='tag'
+                        id="tag"
+                        onChange={onChange}
+
+                    />
+
+
+                </div>
+                <div className='container'>
+                    <button type="submit" className=" btn btn-primary  my-2">Add Note</button>
+
                 </div>
 
             </form>
