@@ -73,11 +73,13 @@ router.post(
     body("password", "enter something in password").exists(),
   ],
 
+
   async (req, res) => {
     // give error when there is some syntax error by User
     const errors = validationResult(req);
+    let success = false;
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({success, errors: errors.array() });
     }
 
     // send data to api
@@ -88,7 +90,7 @@ router.post(
       if (!user) {
         return res
           .status(400)
-          .json({ error: "Please enter valid credentials" });
+          .json({success, error: "Please enter valid credentials" });
       }
 
       const passwordCompare = await bcrypt.compare(password, user.password);
@@ -96,7 +98,7 @@ router.post(
       if (!passwordCompare) {
         return res
           .status(400)
-          .json({ error: "Please enter valid credentials" });
+          .json({success, error: "Please enter valid credentials" });
       }
 
       const data = {
@@ -106,7 +108,8 @@ router.post(
       };
       const authToken = jwt.sign(data, jwtSecretKey);
       console.warn(user);
-      res.status(200).json({ authToken });
+      success= true;
+      res.status(200).json({success, authToken });
     } catch (error) {
       console.error(error.message);
       res.status(500).send("Internal Server Error");

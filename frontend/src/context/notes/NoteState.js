@@ -80,7 +80,7 @@ const NoteState = (props) => {
   const editNote = async ( _id, title, description, tag ) => {
     
     try {
-      const response = await fetch(`${host}/api/notes/updatenote/${_id}`, {
+      await fetch(`${host}/api/notes/updatenote/${_id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
