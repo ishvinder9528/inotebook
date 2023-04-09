@@ -8,26 +8,37 @@ const jwtSecretKey = process.env.JWT_SECRET_KEY;
 const fetchuser = require("../middleware/fetchuser");
 
 //ROUTE 1: post the data to the /api/auth/createuser, no login required
-router.post("/createuser", [
-  body("name", "invalid name, enter more than 5 character").isLength({ min: 5, }),
-  body("email", "invalid email").isEmail(),
-  body("password", "invalid name, enter password than 5 character").isLength({ min: 5, }),
-],
+router.post(
+  "/createuser",
+  [
+    body("name", "invalid name, enter more than 5 character").isLength({
+      min: 5,
+    }),
+    body("email", "invalid email").isEmail(),
+    body("password", "invalid name, enter password than 5 character").isLength({
+      min: 5,
+    }),
+  ],
   async (req, res) => {
-
+    let success = false;
     // give error when there is some BAD request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ success, errors: errors.array() });
     }
 
     const { name, email, password } = req.body;
     // hasing /brcyptj
-    const salt = await bcrypt.genSaltSync(10);
+    const salt = bcrypt.genSaltSync(10);
     const secPassword = await bcrypt.hash(password, salt);
 
     // send data to api
     try {
+      let checkuser = await User.findOne({ email: email });
+      if (checkuser) {
+        console.error("Error => email already exists");
+        return res.status(400).json({ success, error: "email already exists" });
+      }
       const user = await User.create({
         name,
         email,
@@ -43,24 +54,16 @@ router.post("/createuser", [
       // using jwtAuth here
       try {
         const authToken = jwt.sign(data, jwtSecretKey);
-        console.log(authToken);
-
-        res.status(200).json(user);
-        console.log(user);
+        success = true;
+        res.status(200).json({ success, authToken });
       } catch (error) {
         console.log("Error =>", err);
         res.status(500).send("Internal Server Error");
       }
     } catch (error) {
       // check if there is some internal error/
-      let user = await User.findOne({ email: email });
-      if (user) {
-        console.error("Error => email already exists");
-        return res.status(400).json({ error: "email already exists" });
-      } else {
-        console.log("Error Found => ", error);
-        return res.status(500).json({ error: error.message });
-      }
+      console.log("Error Found => ", error);
+      return res.status(500).json({success, error: error.message });
     }
   }
 );
@@ -73,13 +76,12 @@ router.post(
     body("password", "enter something in password").exists(),
   ],
 
-
   async (req, res) => {
     // give error when there is some syntax error by User
     const errors = validationResult(req);
     let success = false;
     if (!errors.isEmpty()) {
-      return res.status(400).json({success, errors: errors.array() });
+      return res.status(400).json({ success, errors: errors.array() });
     }
 
     // send data to api
@@ -90,7 +92,7 @@ router.post(
       if (!user) {
         return res
           .status(400)
-          .json({success, error: "Please enter valid credentials" });
+          .json({ success, error: "Please enter valid credentials" });
       }
 
       const passwordCompare = await bcrypt.compare(password, user.password);
@@ -98,7 +100,7 @@ router.post(
       if (!passwordCompare) {
         return res
           .status(400)
-          .json({success, error: "Please enter valid credentials" });
+          .json({ success, error: "Please enter valid credentials" });
       }
 
       const data = {
@@ -108,8 +110,8 @@ router.post(
       };
       const authToken = jwt.sign(data, jwtSecretKey);
       console.warn(user);
-      success= true;
-      res.status(200).json({success, authToken });
+      success = true;
+      res.status(200).json({ success, authToken });
     } catch (error) {
       console.error(error.message);
       res.status(500).send("Internal Server Error");
