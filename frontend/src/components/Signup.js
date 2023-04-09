@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthContext from "../context/auth/AuthContext";
+import NoteContext from "../context/notes/NoteContext";
 const Signup = () => {
   const navigate = useNavigate();
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext,NoteContext);
   const { signUp, isSigned } = context;
   const [credentials, setCredentials] = useState({
     name: "",

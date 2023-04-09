@@ -13,19 +13,16 @@ const NoteState = (props) => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "auth-token":
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjQyZWJkNWM2ZDI1YjcxYzI5NTc1YjZlIn0sImlhdCI6MTY4MDgwNTExMH0.nZNxVkocII3Z0AEqEVKx_LZLrKhy_r7b7svbLFHB1qA",
+          "auth-token": localStorage.getItem("token"),
         },
-      })
+      });
 
-      let data = await response.json()
+      let data = await response.json();
       // console.log(data);
-      setNotes(data)
-
+      setNotes(data);
     } catch (error) {
-      console.error("Error: " + error);
+      showAlert("Opps, Something went wrong", "danger");
     }
-
   };
 
   // Add note
@@ -37,21 +34,18 @@ const NoteState = (props) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "auth-token":
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjQyZWJkNWM2ZDI1YjcxYzI5NTc1YjZlIn0sImlhdCI6MTY4MDgwNTExMH0.nZNxVkocII3Z0AEqEVKx_LZLrKhy_r7b7svbLFHB1qA",
+          "auth-token": localStorage.getItem("token"),
         },
-        body: JSON.stringify(note)
-      })
+        body: JSON.stringify(note),
+      });
 
-      let data = await response.json()
+      let data = await response.json();
 
       setNotes(notes.concat(data));
-
-
+      showAlert("Note Added !", "success");
     } catch (error) {
-      console.error("Error: " + error);
+      showAlert("Opps, Something went wrong", "danger");
     }
-
   };
 
   // Delete note
@@ -62,56 +56,72 @@ const NoteState = (props) => {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          "auth-token":
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjQyZWJkNWM2ZDI1YjcxYzI5NTc1YjZlIn0sImlhdCI6MTY4MDgwNTExMH0.nZNxVkocII3Z0AEqEVKx_LZLrKhy_r7b7svbLFHB1qA",
+          "auth-token": localStorage.getItem("token"),
         },
-      })
+      });
       const newNote = notes.filter((note) => {
         return note._id !== id;
       });
       setNotes(newNote);
+      showAlert("Note Deleted ", "success");
     } catch (error) {
-      console.error("Error: " + error);
+      showAlert("Opps, Something went wrong", "danger");
     }
-
   };
 
   // Edit note
-  const editNote = async ( _id, title, description, tag ) => {
-    
+  const editNote = async (_id, title, description, tag) => {
     try {
       await fetch(`${host}/api/notes/updatenote/${_id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "auth-token":
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjQyZWJkNWM2ZDI1YjcxYzI5NTc1YjZlIn0sImlhdCI6MTY4MDgwNTExMH0.nZNxVkocII3Z0AEqEVKx_LZLrKhy_r7b7svbLFHB1qA",
+          "auth-token": localStorage.getItem("token"),
         },
-        body: JSON.stringify({ title, description, tag})
-      })
+        body: JSON.stringify({ title, description, tag }),
+      });
       // const json = await response.json()
       // console.log(json);
-      const newNotes = JSON.parse(JSON.stringify(notes))
+      const newNotes = JSON.parse(JSON.stringify(notes));
       for (let index = 0; index < newNotes.length; index++) {
         const element = newNotes[index];
         // eslint-disable-next-line no-cond-assign
         if (element._id === _id) {
-          newNotes[index].title = title
-          newNotes[index].description = description
-          newNotes[index].tag = tag
-          break
+          newNotes[index].title = title;
+          newNotes[index].description = description;
+          newNotes[index].tag = tag;
+          break;
         }
-
       }
-        setNotes(newNotes)
-
+      setNotes(newNotes);
+      showAlert("Note Updated Successfully", "success");
     } catch (error) {
-      console.error("Error: " + error);
+      showAlert("Opps, Something went wrong", "danger");
     }
   };
+  const [alert, setAlert] = useState(null);
+
+  const showAlert = (message, type) => {
+    setAlert({
+      msg: message,
+      type: type,
+    });
+    setTimeout(() => {
+      setAlert(null);
+    }, 3000);
+  };
+
   return (
     <NoteContext.Provider
-      value={{ notes, setNotes, addNote, deleteNote, editNote, getNotes }}
+      value={{
+        notes,
+        setNotes,
+        addNote,
+        deleteNote,
+        editNote,
+        getNotes,
+        alert,
+      }}
     >
       {props.children}
     </NoteContext.Provider>

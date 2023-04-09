@@ -12,10 +12,13 @@ const Login = () => {
   });
 
   useEffect(() => {
-    if (token) {
+
+    if (localStorage.getItem("token")) {
+    // if (token) {
       navigate("/");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const handleSubmit = (e) => {
@@ -30,7 +33,7 @@ const Login = () => {
 
   return (
     <div>
-      <section className="vh-100" >
+      <section className="vh-100">
         <div className="container-fluid h-custom ">
           <div className="row d-flex justify-content-center align-items-center h-100">
             <div className="col-md-9 col-lg-6 col-xl-5">
@@ -54,9 +57,9 @@ const Login = () => {
                 </div>
 
                 {/* <!-- Email input --> */}
-                  <label className="form-label" htmlFor="email">
-                    Email address
-                  </label>
+                <label className="form-label" htmlFor="email">
+                  Email address
+                </label>
                 <div className="form-outline mb-4">
                   <input
                     type="email"
@@ -70,9 +73,9 @@ const Login = () => {
                 </div>
 
                 {/* <!-- Password input --> */}
-                  <label className="form-label" htmlFor="password">
-                    Password
-                  </label>
+                <label className="form-label" htmlFor="password">
+                  Password
+                </label>
                 <div className="form-outline mb-3">
                   <input
                     type="password"
@@ -106,7 +109,6 @@ const Login = () => {
         </div>
       </section>
       <footer className="bg-light text-center text-lg-start">
-      
         <div
           className="text-center p-3"
           style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
